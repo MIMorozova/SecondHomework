@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:6.0.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.register("runTest", Test) { //создали новую таску
+    useJUnitPlatform()  // запускаем JUnit
+    testClassesDirs = sourceSets.test.output.classesDirs //тут лежат скомпилированные тестовые классы
+    classpath = sourceSets.test.runtimeClasspath  //чем скомпилированные тестовые классы должны пользоваться при запуске
+    finalizedBy("printResult")  //задаем очередность выполнения тасок
+}
+
+tasks.register("printResult"){ // создали таску для печати текста
+    doLast { //
+        println("Test run is over")
+    }
+}
