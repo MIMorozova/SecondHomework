@@ -14,6 +14,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.assertj:assertj-core:3.27.7'
+    implementation('io.rest-assured:rest-assured:5.5.6')
 }
 
 test {
@@ -27,8 +28,17 @@ tasks.register("runTest", Test) { //создали новую таску
     finalizedBy("printResult")  //задаем очередность выполнения тасок
 }
 
-tasks.register("printResult"){ // создали таску для печати текста
+tasks.register("printResult") { // создали таску для печати текста
     doLast { //
         println("Test run is over")
     }
+
+}
+
+tasks.register("runApiTest", Test) { //создали новую таску
+    useJUnitPlatform { includeTags "apiTest" }  // запускаем JUnit
+    testClassesDirs = sourceSets.test.output.classesDirs //тут лежат скомпилированные тестовые классы
+    classpath = sourceSets.test.runtimeClasspath
+    //чем скомпилированные тестовые классы должны пользоваться при запуске
+    finalizedBy("printResult")  //задаем очередность выполнения тасок
 }
