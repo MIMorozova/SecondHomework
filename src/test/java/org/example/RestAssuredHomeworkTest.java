@@ -17,7 +17,7 @@ public class RestAssuredHomeworkTest {
     @Test
     public void testGoods(){
         given()
-                .baseUri("http://localhost:8080")
+                .baseUri(ConfigProvider.config.testApiUrl())
                 .queryParam("page", 0)
                 .queryParam("size", 10)
                 .when()
@@ -30,7 +30,7 @@ public class RestAssuredHomeworkTest {
     @Test
     public void testGoodsRequestSpecification(){
         RequestSpecification requestSpec = given()
-                .baseUri("http://localhost:8080")
+                .baseUri(ConfigProvider.config.testApiUrl())
                 .queryParam("page", 0)
                 .queryParam("size", 10);
                 requestSpec.when()
@@ -41,16 +41,18 @@ public class RestAssuredHomeworkTest {
     }
     @Test
     public void testAddGoods(){
+        String productName = ConfigProvider.config.testProductName();
+        Integer productPrice = ConfigProvider.config.testProductPrice();
         String requestBodyAddGoods = """
         {
-          "name": "Limon",
-          "price": 100
+          "name": "%s",
+          "price": %d
         }
-        """;
+        """.formatted(productName,productPrice);
         RequestSpecification requestSpecForAdd = given()
-                .baseUri("http://localhost:8080/")
+                .baseUri(ConfigProvider.config.testApiUrl())
                 .auth()
-                .basic("admin","secret123")
+                .basic(ConfigProvider.config.testLoginAdmin(),ConfigProvider.config.testPasswordAdmin())
                 .contentType("application/json")
                 .body(requestBodyAddGoods);
                 requestSpecForAdd.when()
@@ -59,7 +61,7 @@ public class RestAssuredHomeworkTest {
                 .statusCode(200);
 
         RequestSpecification requestSpec = given()
-                .baseUri("http://localhost:8080")
+                .baseUri(ConfigProvider.config.testApiUrl())
                 .queryParam("page", 0)
                 .queryParam("size", 10);
                 requestSpec.when()
@@ -67,8 +69,8 @@ public class RestAssuredHomeworkTest {
                 .then()
                 .log().all()
                 .statusCode(200)
-                .body("goods.name", hasItem("Limon"))
-                .body("goods.price", hasItem(100.0F));
+                .body("goods.name", hasItem(productName))
+                .body("goods.price", hasItem(productPrice.floatValue()));
     }
     @Test
     public void testGoodsList(){
@@ -79,9 +81,9 @@ public class RestAssuredHomeworkTest {
         }
         """;
         RequestSpecification requestSpecForAdd = given()
-                .baseUri("http://localhost:8080/")
+                .baseUri(ConfigProvider.config.testApiUrl())
                 .auth()
-                .basic("admin","secret123")
+                .basic(ConfigProvider.config.testLoginAdmin(),ConfigProvider.config.testPasswordAdmin())
                 .contentType("application/json")
                 .body(requestBodyAddGoods);
                 requestSpecForAdd.when()
@@ -89,7 +91,7 @@ public class RestAssuredHomeworkTest {
                 .then()
                 .statusCode(200);
         Response responseGoods = given()
-                 .baseUri("http://localhost:8080")
+                 .baseUri(ConfigProvider.config.testApiUrl())
                  .queryParam("page", 0)
                  .queryParam("size", 10)
                  .when()

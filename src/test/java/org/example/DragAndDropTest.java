@@ -1,27 +1,47 @@
 package org.example;
 
 import com.codeborne.selenide.SelenideElement;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.DragAndDropOptions.to;
-import static com.codeborne.selenide.Selenide.$x;
-import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.*;
+
+import com.codeborne.selenide.Configuration;
 
 public class DragAndDropTest {
     TestDataGenerator dataGenerator = new TestDataGenerator();
+    @BeforeAll
+    public static void printConfig() {
+        System.out.println(ConfigProvider.config.testBaseUrl());
+        System.out.println(ConfigProvider.config.testApiUrl());
+        System.out.println(ConfigProvider.config.testTimeout());
+        System.out.println(ConfigProvider.config.testLoggingMode());
+        System.out.println(ConfigProvider.config.testProductName());
+        System.out.println(ConfigProvider.config.testProductPrice());
+        Configuration.timeout = ConfigProvider.config.testTimeout() * 1000;
+    }
+
     @BeforeEach
     public void openBrowserTest() {
-        open("http://localhost:8080/");
+        open(ConfigProvider.config.testBaseUrl());
     }
     // 1.1 Перетащить элемент в корзину с помощью Drag-and-Drop.
+
+    @AfterEach
+    public void closeBrowserTest(){
+        closeWebDriver();
+    }
+
     @Test
     public void dragElementToTheBasket(){
         $x("//a[@href='/admin']").click(); //находим SelenideElement + click
         //Авторизация
-        $x("//input[@id='username']").setValue("admin");
-        $x("//input[@id='password']").setValue("secret123");
+        $x("//input[@id='username']").setValue(ConfigProvider.config.testLoginAdmin());
+        $x("//input[@id='password']").setValue(ConfigProvider.config.testPasswordAdmin());
         $x("//button[@class='primary']").click();
         //Генерация названия товара и цены
         String productName = dataGenerator.generateName();
@@ -50,8 +70,8 @@ public class DragAndDropTest {
     public void deleteElementFromTheBasket(){
         $x("//a[@href='/admin']").click(); //находим SelenideElement + click
         //Авторизация
-        $x("//input[@id='username']").setValue("admin");
-        $x("//input[@id='password']").setValue("secret123");
+        $x("//input[@id='username']").setValue(ConfigProvider.config.testLoginAdmin());
+        $x("//input[@id='password']").setValue(ConfigProvider.config.testPasswordAdmin());
         $x("//button[@class='primary']").click();
         //Генерация названия товара и цены
         String productName = dataGenerator.generateName();
