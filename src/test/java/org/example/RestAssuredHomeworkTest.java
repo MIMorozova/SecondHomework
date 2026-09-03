@@ -2,18 +2,24 @@ package org.example;
 
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
 import java.util.List;
-
 import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 
 public class RestAssuredHomeworkTest {
+    @BeforeAll
+    public static void printConfig() {
+        System.out.println(ConfigProvider.config.testBaseUrl());
+        System.out.println(ConfigProvider.config.testApiUrl());
+        System.out.println(ConfigProvider.config.testTimeout());
+        System.out.println(ConfigProvider.config.testLoggingMode());
+        System.out.println(ConfigProvider.config.testProductName());
+        System.out.println(ConfigProvider.config.testProductPrice());
+    }
     @Test
     public void testGoods(){
         given()
