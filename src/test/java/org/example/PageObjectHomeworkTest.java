@@ -1,6 +1,5 @@
 package org.example;
 
-import com.sun.tools.javac.Main;
 import org.example.pages.AdminLoginPage;
 import org.example.pages.AdminPage;
 import org.example.pages.CartPage;

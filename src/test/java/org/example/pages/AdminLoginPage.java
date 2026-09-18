@@ -10,8 +10,8 @@ public class AdminLoginPage {
     SelenideElement passwordField = $x("//input[@id='password']");
     SelenideElement loginButton = $x("//button[@class='primary']");
     // методы взаимодействия
-    public AdminLoginPage setLoginValue(String loging){
-        loginField.setValue(loging);
+    public AdminLoginPage setLoginValue(String login){
+        loginField.setValue(login);
         return this;
     }
     public AdminLoginPage setPasswordValue(String password){
