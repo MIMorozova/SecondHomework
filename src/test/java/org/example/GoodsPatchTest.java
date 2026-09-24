@@ -1,14 +1,14 @@
 package org.example;
 import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import java.util.Random;
-import static io.restassured.RestAssured.given;
 
 
 @Tag("apiTest")
 public class GoodsPatchTest {
+    GoodsApi goodsApi = new GoodsApi();
+    ApiAssert apiAssert = new ApiAssert();
     // Тест PATCH 200
     @Test
     public void goodsPatchTest() {
@@ -24,17 +24,9 @@ public class GoodsPatchTest {
                 }
                 """.formatted(productName, price); //сохранение сгенерированных данных в JSON
         System.out.println("Сгенерирован товар: name = " + productName + ", price = " + price);
-        RequestSpecification requestSpecForAdd = given()
-                .baseUri("http://localhost:8080/")
-                .auth()
-                .basic("admin", "secret123")
-                .contentType("application/json")
-                .body(requestBodyAddGoods);
-        Response addGoods = requestSpecForAdd // сохранили ответ в переменную
-                .when()
-                .post("/goods/add");
-        System.out.println(addGoods.asString()); //вывод в консоль значения
-        Integer goodsId = addGoods.path("data.id");
+        Response postAddProductRequest = goodsApi.postGoods(requestBodyAddGoods);
+        System.out.println(postAddProductRequest.asString()); //вывод в консоль значения
+        Integer goodsId = postAddProductRequest.path("data.id");
         //данные для обновления
         String newProductName = "ProductNew" + uniqueValue;
         Integer newPrice = priceGenerator.nextInt(901) + 100; //задаем диапазон цены от 100 до 1000
@@ -45,18 +37,8 @@ public class GoodsPatchTest {
                 }
                 """.formatted(newProductName, newPrice);
         System.out.println("Сгенерирован товар: newName = " + newProductName + ", newPrice = " + newPrice);
-
-        RequestSpecification requestSpecForPatch = given()
-                .baseUri("http://localhost:8080")
-                .auth()
-                .basic("admin", "secret123")
-                .contentType("application/json")
-                .body(requestBodyPatchGoods)
-                .pathParam("id", goodsId);
-        requestSpecForPatch.when()
-                .patch("/goods/{id}")
-                .then()
-                .statusCode(200);
+        Response responseGoods = goodsApi.patchGoods(requestBodyPatchGoods,goodsId);
+        apiAssert.statusCode(responseGoods, 200);
     }
     // Тест PATCH 400
     @Test
@@ -84,29 +66,13 @@ public class GoodsPatchTest {
         System.out.println("Сгенерирован товар: name = " + productNameNew + ", price = " + productPriceNew);
 
         // Создаем товар 1
-        RequestSpecification requestSpecForAdd = given()
-                .baseUri("http://localhost:8080/")
-                .auth()
-                .basic("admin", "secret123")
-                .contentType("application/json")
-                .body(requestBodyAddGoods);
-        Response addGoods = requestSpecForAdd // сохранили ответ в переменную
-                .when()
-                .post("/goods/add");
-        System.out.println(addGoods.asString()); //вывод в консоль значения
+        Response postAddProductRequest = goodsApi.postGoods(requestBodyAddGoods);
+        System.out.println(postAddProductRequest.asString()); //вывод в консоль значения
 
         // Создаем товар 2
-        RequestSpecification requestSpecForNewAdd = given()
-                .baseUri("http://localhost:8080/")
-                .auth()
-                .basic("admin", "secret123")
-                .contentType("application/json")
-                .body(requestBodyAddGoodsNew);
-        Response addGoodsNew = requestSpecForNewAdd // сохранили ответ в переменную
-                .when()
-                .post("/goods/add");
-        System.out.println(addGoodsNew.asString()); //вывод в консоль значения
-        Integer productIdNew = addGoodsNew.path("data.id");
+        Response postAddSecondProductRequest = goodsApi.postGoods(requestBodyAddGoodsNew);
+        System.out.println(postAddSecondProductRequest.asString()); //вывод в консоль значения
+        Integer productIdNew = postAddSecondProductRequest.path("data.id");
         String requestBodyPatchDuplicateName = """
                {
                 "name": "%s",
@@ -114,17 +80,8 @@ public class GoodsPatchTest {
                 }
         """.formatted(productName, productPriceNew);
         //Проверка PATCH
-        RequestSpecification requestSpecForPatch = given()
-                .baseUri("http://localhost:8080/")
-                .auth()
-                .basic("admin", "secret123")
-                .contentType("application/json")
-                .body(requestBodyPatchDuplicateName)
-                .pathParam("id", productIdNew);
-        requestSpecForPatch.when()
-                .patch("/goods/{id}")
-                .then()
-                .statusCode(400);
+        Response responseGoods = goodsApi.patchGoods(requestBodyPatchDuplicateName,productIdNew);
+        apiAssert.statusCode(responseGoods, 400);
     }
 
     // Тест PATCH 404
@@ -141,38 +98,13 @@ public class GoodsPatchTest {
                 }
                 """.formatted(productName, productPrice); //сохранение сгенерированных данных в JSON
         System.out.println("Сгенерирован товар: name = " + productName + ", price = " + productPrice);
-        RequestSpecification requestSpecForAdd = given()
-                .baseUri("http://localhost:8080/")
-                .auth()
-                .basic("admin", "secret123")
-                .contentType("application/json")
-                .body(requestBodyAddGoods);
-        Response addGoods = requestSpecForAdd // сохранили ответ в переменную
-                .when()
-                .post("/goods/add");
-        System.out.println(addGoods.asString()); //вывод в консоль значения
-        Integer productId = addGoods.path("data.id");
+        Response postAddSecondProductRequest = goodsApi.postGoods(requestBodyAddGoods);
+        System.out.println(postAddSecondProductRequest.asString()); //вывод в консоль значения
+        Integer productId = postAddSecondProductRequest.path("data.id");
         // Удаление товара по id
-        RequestSpecification requestSpecForDelete = given()
-                .baseUri("http://localhost:8080")
-                .auth()
-                .basic("admin", "secret123")
-                .pathParam("id", productId);
-        requestSpecForDelete.when()
-                .delete("/goods/{id}")
-                .then()
-                .statusCode(200);
+       Response deleteGoods = goodsApi.deleteGoods(productId);
         //Проверка PATCH
-        RequestSpecification requestSpecForPatch = given()
-                .baseUri("http://localhost:8080/")
-                .auth()
-                .basic("admin", "secret123")
-                .contentType("application/json")
-                .body(requestBodyAddGoods)
-                .pathParam("id", productId);
-        requestSpecForPatch.when()
-                .patch("/goods/{id}")
-                .then()
-                .statusCode(404);
+        Response patchGoodsRequest = goodsApi.patchGoods(requestBodyAddGoods,productId);
+        apiAssert.statusCode(patchGoodsRequest, 404);
     }
 }

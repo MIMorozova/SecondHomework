@@ -1,15 +1,15 @@
 package org.example;
 
 import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.*;
-import static io.restassured.RestAssured.given;
 
 public class SelenideTask3Test {
+    GoodsApi goodsApi = new GoodsApi();
+    ApiAssert apiAssert = new ApiAssert();
     TestDataGenerator dataGenerator = new TestDataGenerator();
     Integer productId;
 
@@ -21,15 +21,8 @@ public class SelenideTask3Test {
     @AfterEach
     public void closeBrowserTest(){
             if(productId != null) {
-        RequestSpecification requestSpecForDelete = given()
-                .baseUri("http://localhost:8080")
-                .auth()
-                .basic("admin", "secret123")
-                .pathParam("id", productId);
-        requestSpecForDelete.when()
-                .delete("/goods/{id}")
-                .then()
-                .statusCode(200);
+                Response deleteGoods = goodsApi.deleteGoods(productId);
+                apiAssert.statusCode(deleteGoods,200);
     }
         closeWebDriver();
     }
@@ -75,7 +68,6 @@ public class SelenideTask3Test {
         $x("//div[@class='header']/h1[@id='main-title']").shouldHave(exactText("Заказ успешно оформлен!")); // проверка итогового статуса заказа
     }
 
-    //Вот тут helper
     // helper
     private void createProduct(String productName, int productPrice){
         String productPriceText = String.valueOf(productPrice);
@@ -149,19 +141,9 @@ public class SelenideTask3Test {
             "price": %d
         }
         """.formatted(productName, productPrice);
-        RequestSpecification requestSpecForAdd = given()
-                .baseUri("http://localhost:8080/")
-                .auth()
-                .basic("admin", "secret123")
-                .contentType("application/json")
-                .body(requestBodyAddGoods);
-        Response addProducts = requestSpecForAdd // сохранили ответ в переменную
-                .when()
-                .post("/goods/add");
-        addProducts
-                .then()
-                .statusCode(200);
-        Integer productId = addProducts.path("data.id");
+        Response postAddProductRequest = goodsApi.postGoods(requestBodyAddGoods);
+        apiAssert.statusCode(postAddProductRequest,200);
+        Integer productId = postAddProductRequest.path("data.id");
         return productId;
     }
 

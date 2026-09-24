@@ -1,16 +1,23 @@
 package org.example;
 
+import com.codeborne.selenide.logevents.SelenideLogger;
 import org.example.pages.AdminLoginPage;
 import org.example.pages.AdminPage;
 import org.example.pages.CartPage;
 import org.example.pages.MainPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeAll;
+import io.qameta.allure.selenide.AllureSelenide;
 
 import static com.codeborne.selenide.Selenide.closeWebDriver;
 import static com.codeborne.selenide.Selenide.open;
 
 public class PageObjectHomeworkTest {
+    @BeforeAll
+    public static void addListener(){
+        SelenideLogger.addListener("AllureSelenide", new AllureSelenide().screenshots(true).savePageSource(true));
+    }
     @BeforeEach
     public void setUp(){
         closeWebDriver();
@@ -51,17 +58,12 @@ public class PageObjectHomeworkTest {
     public void addProductInAdminAndCheckToast(){
         MainPage mainPage = new MainPage();
         mainPage.pressAdminButton();
-        AdminLoginPage adminLoginPage = new AdminLoginPage();
-        adminLoginPage.setLoginValue(ConfigProvider.config.testLoginAdmin());
-        adminLoginPage.setPasswordValue(ConfigProvider.config.testPasswordAdmin());
-        adminLoginPage.clickLoginButton();
-        AdminPage adminPage = new AdminPage();
+        AdminLoginPage adminLoginPage= new AdminLoginPage();
+        AdminPage adminPage = adminLoginPage.loginInAdmin(ConfigProvider.config.testLoginAdmin(), ConfigProvider.config.testPasswordAdmin());
         TestDataGenerator testDataGenerator = new TestDataGenerator();
         String productNameAdmin = testDataGenerator.generateName();
         Integer productPriceAdmin = testDataGenerator.generatePrice();
-        adminPage.addProductName(productNameAdmin);
-        adminPage.addProductPrice(productPriceAdmin);
-        adminPage.pressAddProductButton();
+        adminPage.addProduct(productNameAdmin,productPriceAdmin);
         adminPage.check().productAddedNotificationIs("Товар успешно добавлен!");
     }
 
@@ -70,18 +72,13 @@ public class PageObjectHomeworkTest {
     public void editProductInAdminAndCheck(){
         MainPage mainPage = new MainPage();
         mainPage.pressAdminButton();
-        AdminLoginPage adminLoginPage = new AdminLoginPage();
-        adminLoginPage.setLoginValue(ConfigProvider.config.testLoginAdmin());
-        adminLoginPage.setPasswordValue(ConfigProvider.config.testPasswordAdmin());
-        adminLoginPage.clickLoginButton();
-        AdminPage adminPage = new AdminPage();
+        AdminLoginPage adminLoginPage= new AdminLoginPage();
+        AdminPage adminPage = adminLoginPage.loginInAdmin(ConfigProvider.config.testLoginAdmin(), ConfigProvider.config.testPasswordAdmin());
         TestDataGenerator testDataGenerator = new TestDataGenerator();
         // создаем исходный товар в админке
         String productNameAdmin = testDataGenerator.generateName();
         Integer productPriceAdmin = testDataGenerator.generatePrice();
-        adminPage.addProductName(productNameAdmin);
-        adminPage.addProductPrice(productPriceAdmin);
-        adminPage.pressAddProductButton();
+        adminPage.addProduct(productNameAdmin,productPriceAdmin);
         adminPage.check().productAddedNotificationIs("Товар успешно добавлен!");
         // создаем данные для редактирования
         String newProductName = testDataGenerator.generateName();

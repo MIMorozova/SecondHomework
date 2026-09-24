@@ -1,14 +1,13 @@
 package org.example;
 import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import java.util.Random;
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @Tag("apiTest")
 public class GoodsAddTest {
+    GoodsApi goodsApi = new GoodsApi();
+    ApiAssert apiAssert = new ApiAssert();
     @Test
     public void testGoodsAdd() {
         long uniqueValue = System.currentTimeMillis();
@@ -22,26 +21,11 @@ public class GoodsAddTest {
         }
         """.formatted(name, price); //сохранение сгенерированных данных в JSON
         System.out.println("Сгенерирован товар: name = " + name + ", price = " + price); //Вывод данных, с которыми будет проходить тест
-
-        RequestSpecification requestSpecForAdd = given()
-                .baseUri("http://localhost:8080/")
-                .auth()
-                .basic("admin", "secret123")
-                .contentType("application/json")
-                .body(requestBodyAddGoods);
-        Response addProducts = requestSpecForAdd // сохранили ответ в переменную
-                .when()
-                .post("/goods/add");
-        System.out.println(addProducts.asString());
-        addProducts
-                .then()
-                .statusCode(200);
-        Integer productId = addProducts.path("data.id");
-        assertThat(productId)
-                .as("Проверка что значение productId не null")
-                .isNotNull();
-
-
+        Response postAddProductRequest = goodsApi.postGoods(requestBodyAddGoods);
+        System.out.println(postAddProductRequest.asString());
+        apiAssert.statusCode(postAddProductRequest, 200);
+        Integer productId = postAddProductRequest.path("data.id");
+        apiAssert.checkValueIsNotNull(productId);
     }
 
     @Test
@@ -58,19 +42,9 @@ public class GoodsAddTest {
         """.formatted(name, price); //сохранение сгенерированных данных в JSON
         System.out.println("Сгенерирован товар: name = " + name + ", price = " + price); //Вывод данных, с которыми будет проходить тест
 
-        RequestSpecification requestSpecForAdd = given()
-                .baseUri("http://localhost:8080/")
-                .auth()
-                .basic("admin", "secret123")
-                .contentType("application/json")
-                .body(requestBodyAddGoods);
-        requestSpecForAdd.when()
-                .post("/goods/add")
-                .then()
-                .statusCode(200);
-        requestSpecForAdd.when()
-                .post("/goods/add")
-                .then()
-                .statusCode(400);
+        Response postAddProductRequest = goodsApi.postGoods(requestBodyAddGoods);
+        apiAssert.statusCode(postAddProductRequest, 200);
+        Response secondPostAddProductRequest = goodsApi.postGoods(requestBodyAddGoods);
+        apiAssert.statusCode(secondPostAddProductRequest, 400);
     }
 }

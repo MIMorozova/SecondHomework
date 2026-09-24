@@ -1,16 +1,14 @@
 package org.example;
 
 import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import java.util.List;
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.collection.IsEmptyCollection.empty;
+
 
 public class RestAssuredHomeworkTest {
+    GoodsApi goodsApi = new GoodsApi();
+    ApiAssert apiAssert = new ApiAssert();
     @BeforeAll
     public static void printConfig() {
         System.out.println(ConfigProvider.config.testBaseUrl());
@@ -22,28 +20,16 @@ public class RestAssuredHomeworkTest {
     }
     @Test
     public void testGoods(){
-        given()
-                .baseUri(ConfigProvider.config.testApiUrl())
-                .queryParam("page", 0)
-                .queryParam("size", 10)
-                .when()
-                .get("/goods/list")
-                .then()
-                .statusCode(200)
-                .body("goods", empty());
+        Response responseGoods = goodsApi.getGoods(0, 10);
+        apiAssert.statusCode(responseGoods, 200);
+        apiAssert.checkBodyIsEmpty(responseGoods, "goods");
     }
 
     @Test
     public void testGoodsRequestSpecification(){
-        RequestSpecification requestSpec = given()
-                .baseUri(ConfigProvider.config.testApiUrl())
-                .queryParam("page", 0)
-                .queryParam("size", 10);
-                requestSpec.when()
-                .get("/goods/list")
-                .then()
-                .statusCode(200)
-                .body("goods", empty());
+        Response responseGoods = goodsApi.getGoods(0, 10);
+        apiAssert.statusCode(responseGoods, 200);
+        apiAssert.checkBodyIsEmpty(responseGoods, "goods");
     }
     @Test
     public void testAddGoods(){
@@ -55,63 +41,32 @@ public class RestAssuredHomeworkTest {
           "price": %d
         }
         """.formatted(productName,productPrice);
-        RequestSpecification requestSpecForAdd = given()
-                .baseUri(ConfigProvider.config.testApiUrl())
-                .auth()
-                .basic(ConfigProvider.config.testLoginAdmin(),ConfigProvider.config.testPasswordAdmin())
-                .contentType("application/json")
-                .body(requestBodyAddGoods);
-                requestSpecForAdd.when()
-                .post("/goods/add")
-                .then()
-                .statusCode(200);
+        Response postAddProductRequest = goodsApi.postGoods(requestBodyAddGoods);
+        apiAssert.statusCode(postAddProductRequest, 200);
 
-        RequestSpecification requestSpec = given()
-                .baseUri(ConfigProvider.config.testApiUrl())
-                .queryParam("page", 0)
-                .queryParam("size", 10);
-                requestSpec.when()
-                .get("/goods/list")
-                .then()
-                .log().all()
-                .statusCode(200)
-                .body("goods.name", hasItem(productName))
-                .body("goods.price", hasItem(productPrice.floatValue()));
+        Response responseGoods = goodsApi.getGoods(0, 10);
+        apiAssert.statusCode(responseGoods, 200);
+        apiAssert.checkBodyHasItem(responseGoods,"goods.name",productName);
+        apiAssert.checkBodyHasItem(responseGoods, "goods.price",productPrice.floatValue());
     }
     @Test
-    public void testGoodsList(){
+    public void testGoodsList() {
         String requestBodyAddGoods = """
-        {
-          "name": "Mushrooms",
-          "price": 300
-        }
-        """;
-        RequestSpecification requestSpecForAdd = given()
-                .baseUri(ConfigProvider.config.testApiUrl())
-                .auth()
-                .basic(ConfigProvider.config.testLoginAdmin(),ConfigProvider.config.testPasswordAdmin())
-                .contentType("application/json")
-                .body(requestBodyAddGoods);
-                requestSpecForAdd.when()
-                .post("/goods/add")
-                .then()
-                .statusCode(200);
-        Response responseGoods = given()
-                 .baseUri(ConfigProvider.config.testApiUrl())
-                 .queryParam("page", 0)
-                 .queryParam("size", 10)
-                 .when()
-                 .get("/goods/list");
+                {
+                  "name": "Mushrooms",
+                  "price": 300
+                }
+                """;
+        Response postAddProductRequest = goodsApi.postGoods(requestBodyAddGoods);
+        apiAssert.statusCode(postAddProductRequest, 200);
+        Response responseGoods = goodsApi.getGoods(0, 10);
         List<String> actualGoodsNames = responseGoods.path("goods.name");
         Float actualPrice = responseGoods.path("goods.find { it.name == 'Mushrooms' }.price");
         String expectedGoodsName = "Mushrooms";
         Float expectedPrice = 300.0F;
-        assertThat(actualGoodsNames)
-                .as("Проверка добавления %s в список товаров", expectedGoodsName)
-                .contains(expectedGoodsName);
-        assertThat(actualPrice)
-                .as("Проверка добавления для товара %s цены %s",expectedGoodsName,expectedPrice)
-                .isEqualTo(expectedPrice);
+
+        apiAssert.checkListContains(actualGoodsNames, expectedGoodsName);
+        apiAssert.checkValueEquals(actualPrice, expectedPrice);
     }
 }
 
