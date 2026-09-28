@@ -6,6 +6,7 @@ import org.example.pages.AdminPage;
 import org.example.pages.CartPage;
 import org.example.pages.MainPage;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 import io.qameta.allure.selenide.AllureSelenide;
@@ -43,18 +44,19 @@ public class PageObjectHomeworkTest {
     public void addItemsToCartAndCheckTotalPrice(){
         MainPage mainPage = new MainPage();
         mainPage.addProductToCart(ConfigProvider.config.testProductName());
-        mainPage.addProductToCart("Mushrooms");
+        mainPage.addProductToCart(ConfigProvider.config.testSecondProductName());
         mainPage.openCart();
         CartPage cartPage = new CartPage();
         cartPage.check().productIsInCart(ConfigProvider.config.testProductName());
-        cartPage.check().productIsInCart("Mushrooms");
-        cartPage.check().productQuantityIs("Mushrooms",1);
+        cartPage.check().productIsInCart(ConfigProvider.config.testSecondProductName());
+        cartPage.check().productQuantityIs(ConfigProvider.config.testSecondProductName(),1);
         cartPage.check().cartItemsCountIs(2);
-        cartPage.check().totalPriceIs(ConfigProvider.config.testProductPrice()+300);
+        cartPage.check().totalPriceIs(ConfigProvider.config.testProductPrice()+ConfigProvider.config.testSecondProductPrice());
     }
 
     // 2.3. Войти в админку и добавить товар. Проверить уведомление после добавления товара.
     @Test
+    @Tag("smoke")
     public void addProductInAdminAndCheckToast(){
         MainPage mainPage = new MainPage();
         mainPage.pressAdminButton();

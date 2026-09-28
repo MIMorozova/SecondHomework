@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+dependencies {
+    implementation project(':common')
+
+    testImplementation platform('org.junit:junit-bom:6.0.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation 'com.codeborne:selenide:7.18.0'
+    testImplementation 'org.seleniumhq.selenium:selenium-java:4.47.0'
+    implementation 'io.qameta.allure:allure-selenide:2.33.0'
+    implementation 'org.assertj:assertj-core:3.27.7'
+    testImplementation 'org.aeonbits.owner:owner:1.0.12'
+}
+test {
+    useJUnitPlatform()
+}
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+tasks.register("runUiSmoke", Test) { //создали новую таску
+    useJUnitPlatform { includeTags "smoke" }  // запускаем JUnit
+    testClassesDirs = sourceSets.test.output.classesDirs //тут лежат скомпилированные тестовые классы
+    classpath = sourceSets.test.runtimeClasspath
+}

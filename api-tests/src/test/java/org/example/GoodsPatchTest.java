@@ -2,83 +2,64 @@ package org.example;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import java.util.Random;
 
 
 @Tag("apiTest")
 public class GoodsPatchTest {
     GoodsApi goodsApi = new GoodsApi();
     ApiAssert apiAssert = new ApiAssert();
+    TestDataGenerator testDataGenerator  = new TestDataGenerator();
+    GoodsRequestBody goodsRequestBody = new GoodsRequestBody();
     // Тест PATCH 200
     @Test
     public void goodsPatchTest() {
         //генерация названия и цены продукта
-        long uniqueValue = System.currentTimeMillis();
-        String productName = "Product" + uniqueValue;
-        Random priceGenerator = new Random();
-        Integer price = priceGenerator.nextInt(901) + 100; //задаем диапазон цены от 100 до 1000
-        String requestBodyAddGoods = """
-                {
-                    "name": "%s",
-                    "price": %d
-                }
-                """.formatted(productName, price); //сохранение сгенерированных данных в JSON
+        String productName = testDataGenerator.generateName();
+        Integer price = testDataGenerator.generatePrice();
+        String requestBodyAddGoods = goodsRequestBody.requestBody(productName,price);
         System.out.println("Сгенерирован товар: name = " + productName + ", price = " + price);
         Response postAddProductRequest = goodsApi.postGoods(requestBodyAddGoods);
+        apiAssert.statusCode(postAddProductRequest, 200);
         System.out.println(postAddProductRequest.asString()); //вывод в консоль значения
         Integer goodsId = postAddProductRequest.path("data.id");
+        apiAssert.checkValueIsNotNull(goodsId);
         //данные для обновления
-        String newProductName = "ProductNew" + uniqueValue;
-        Integer newPrice = priceGenerator.nextInt(901) + 100; //задаем диапазон цены от 100 до 1000
-        String requestBodyPatchGoods = """
-                {
-                    "name" : "%s",
-                    "price" : %d
-                }
-                """.formatted(newProductName, newPrice);
+        String newProductName = testDataGenerator.generateName();
+        Integer newPrice = testDataGenerator.generatePrice();
+        String requestBodyPatchGoods = goodsRequestBody.requestBody(newProductName,newPrice);
         System.out.println("Сгенерирован товар: newName = " + newProductName + ", newPrice = " + newPrice);
         Response responseGoods = goodsApi.patchGoods(requestBodyPatchGoods,goodsId);
         apiAssert.statusCode(responseGoods, 200);
+        Response responseGoodsNew = goodsApi.getGoodsById(goodsId);
+        apiAssert.statusCode(responseGoodsNew, 200);
+        apiAssert.checkBody(responseGoodsNew, "name", newProductName);
+        apiAssert.checkBody(responseGoodsNew, "price", newPrice.floatValue());
     }
+
     // Тест PATCH 400
     @Test
     public void goodsPatchFailTest() {
-        long uniqueValue = System.currentTimeMillis();
-        String productName = "Product" + uniqueValue;
-        Random priceGenerator = new Random();
-        Integer productPrice = priceGenerator.nextInt(901) + 100;
-        String requestBodyAddGoods = """
-                {
-                    "name": "%s",
-                    "price": %d
-                }
-                """.formatted(productName, productPrice); //сохранение сгенерированных данных в JSON
+        String productName = testDataGenerator.generateName();
+        Integer productPrice = testDataGenerator.generatePrice();
+        String requestBodyAddGoods = goodsRequestBody.requestBody(productName,productPrice);
         System.out.println("Сгенерирован товар: name = " + productName + ", price = " + productPrice);
-
-        String productNameNew = "ProductNew" + uniqueValue;
-        Integer productPriceNew = priceGenerator.nextInt(901) + 100;
-        String requestBodyAddGoodsNew = """   
-                {
-                    "name": "%s", 
-                    "price": %d   
-                }
-                """.formatted(productNameNew, productPriceNew); //сохранение сгенерированных данных в JSON
+        String productNameNew = testDataGenerator.generateName();
+        Integer productPriceNew = testDataGenerator.generatePrice();
+        String requestBodyAddGoodsNew = goodsRequestBody.requestBody(productNameNew,productPriceNew);
         System.out.println("Сгенерирован товар: name = " + productNameNew + ", price = " + productPriceNew);
 
         // Создаем товар 1
         Response postAddProductRequest = goodsApi.postGoods(requestBodyAddGoods);
+        apiAssert.statusCode(postAddProductRequest, 200);
         System.out.println(postAddProductRequest.asString()); //вывод в консоль значения
 
         // Создаем товар 2
         Response postAddSecondProductRequest = goodsApi.postGoods(requestBodyAddGoodsNew);
+        apiAssert.statusCode(postAddSecondProductRequest, 200);
         System.out.println(postAddSecondProductRequest.asString()); //вывод в консоль значения
         Integer productIdNew = postAddSecondProductRequest.path("data.id");
-        String requestBodyPatchDuplicateName = """
-               {
-                "name": "%s",
-                "price": %d
-                }
-        """.formatted(productName, productPriceNew);
+        apiAssert.checkValueIsNotNull(productIdNew);
+        String requestBodyPatchDuplicateName = goodsRequestBody.requestBody(productName,productPriceNew);
         //Проверка PATCH
         Response responseGoods = goodsApi.patchGoods(requestBodyPatchDuplicateName,productIdNew);
         apiAssert.statusCode(responseGoods, 400);
@@ -87,22 +68,19 @@ public class GoodsPatchTest {
     // Тест PATCH 404
     @Test
     public void goodsPatchNotFoundTest(){
-        long uniqueValue = System.currentTimeMillis();
-        String productName = "Product" + uniqueValue;
-        Random priceGenerator = new Random();
-        Integer productPrice = priceGenerator.nextInt(901) + 100;
-        String requestBodyAddGoods = """
-                {
-                    "name": "%s",
-                    "price": %d
-                }
-                """.formatted(productName, productPrice); //сохранение сгенерированных данных в JSON
+        String productName = testDataGenerator.generateName();
+        Integer productPrice = testDataGenerator.generatePrice();
+        String requestBodyAddGoods = goodsRequestBody.requestBody(productName,productPrice);
         System.out.println("Сгенерирован товар: name = " + productName + ", price = " + productPrice);
         Response postAddSecondProductRequest = goodsApi.postGoods(requestBodyAddGoods);
+        apiAssert.statusCode(postAddSecondProductRequest, 200);
         System.out.println(postAddSecondProductRequest.asString()); //вывод в консоль значения
         Integer productId = postAddSecondProductRequest.path("data.id");
+        apiAssert.checkValueIsNotNull(productId);
+
         // Удаление товара по id
        Response deleteGoods = goodsApi.deleteGoods(productId);
+        apiAssert.statusCode(deleteGoods, 200);
         //Проверка PATCH
         Response patchGoodsRequest = goodsApi.patchGoods(requestBodyAddGoods,productId);
         apiAssert.statusCode(patchGoodsRequest, 404);

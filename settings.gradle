@@ -1,1 +1,2 @@
 rootProject.name = 'SecondHomework'
+include 'common', 'api-tests', 'ui-tests'

@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':common') //общие классы и конфиг
+    implementation 'io.rest-assured:rest-assured:5.5.6' //API-инфраструктура
+    implementation 'io.qameta.allure:allure-rest-assured:2.33.0'
+    implementation 'org.assertj:assertj-core:3.27.7' //ApiAssert
+    implementation 'org.aeonbits.owner:owner:1.0.12' // добавляем owner
+
+    testImplementation platform('org.junit:junit-bom:6.0.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+test {
+    useJUnitPlatform()
+}
+tasks.register("runApiSmoke", Test) { //создали новую таску
+    useJUnitPlatform { includeTags "smoke" }  // запускаем JUnit
+    testClassesDirs = sourceSets.test.output.classesDirs //тут лежат скомпилированные тестовые классы
+    classpath = sourceSets.test.runtimeClasspath
+}

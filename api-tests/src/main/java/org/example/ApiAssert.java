@@ -12,7 +12,7 @@ import static org.hamcrest.collection.IsEmptyCollection.empty;
 
 public class ApiAssert {
     @Step
-    // проверка статус-кода 200ок
+    // проверка статус-кода
     public void statusCode(Response response, int expectedCode){
         response.then()
        .statusCode(expectedCode);

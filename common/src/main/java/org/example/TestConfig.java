@@ -27,4 +27,10 @@ public interface TestConfig extends Config {
 
     @Key("start.product.price")
     Integer testProductPrice();
+
+    @Key("second.product.name")
+    String testSecondProductName();
+
+    @Key("second.product.price")
+    Integer testSecondProductPrice();
 }

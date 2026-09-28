@@ -26,6 +26,9 @@ dependencies {
     testImplementation('org.aeonbits.owner:owner:1.0.12')
     testImplementation 'io.qameta.allure:allure-selenide:2.33.0'
     testImplementation 'io.qameta.allure:allure-rest-assured:2.33.0'
+    testImplementation project(':common')
+    testImplementation project(':api-tests')
+    testImplementation project(':ui-tests')
 }
 
 test {
