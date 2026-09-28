@@ -1,58 +1,9 @@
 plugins {
-    id 'java'
     id 'io.qameta.allure' version '4.3.0'
 }
 
-group = 'org.example'
-version = '1.0-SNAPSHOT'
-
-repositories {
-    mavenCentral()
-}
 allure {
     adapter {
         allureJavaVersion = "2.33.0"
     }
-}
-
-dependencies {
-    testImplementation platform('org.junit:junit-bom:6.0.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'org.assertj:assertj-core:3.27.7'
-    implementation('io.rest-assured:rest-assured:5.5.6')
-    testImplementation('org.seleniumhq.selenium:selenium-java:4.47.0')
-    testImplementation('com.codeborne:selenide:7.18.0')
-    testImplementation('org.aeonbits.owner:owner:1.0.12')
-    testImplementation 'io.qameta.allure:allure-selenide:2.33.0'
-    testImplementation 'io.qameta.allure:allure-rest-assured:2.33.0'
-    testImplementation project(':common')
-    testImplementation project(':api-tests')
-    testImplementation project(':ui-tests')
-}
-
-test {
-    useJUnitPlatform()
-}
-
-tasks.register("runTest", Test) { //создали новую таску
-    useJUnitPlatform{includeTags "secondTask"}  // запускаем JUnit
-    testClassesDirs = sourceSets.test.output.classesDirs //тут лежат скомпилированные тестовые классы
-    classpath = sourceSets.test.runtimeClasspath  //чем скомпилированные тестовые классы должны пользоваться при запуске
-    finalizedBy("printResult")  //задаем очередность выполнения тасок
-}
-
-tasks.register("printResult") { // создали таску для печати текста
-    doLast { //
-        println("Test run is over")
-    }
-
-}
-
-tasks.register("runApiTest", Test) { //создали новую таску
-    useJUnitPlatform { includeTags "apiTest" }  // запускаем JUnit
-    testClassesDirs = sourceSets.test.output.classesDirs //тут лежат скомпилированные тестовые классы
-    classpath = sourceSets.test.runtimeClasspath
-    //чем скомпилированные тестовые классы должны пользоваться при запуске
-    finalizedBy("printResult")  //задаем очередность выполнения тасок
 }
